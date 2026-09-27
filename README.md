@@ -2,7 +2,7 @@
 
 # 🛡️ DiskSafe
 
-**Verificador de disco/pendrive "fantasma" para macOS — direto no terminal, com menu de setas e barra de blocos colorida.**
+**Verificador de disco/pendrive "fantasma" para macOS — descobre quando a capacidade real de um disco é menor do que a anunciada.**
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![macOS](https://img.shields.io/badge/macOS-diskutil-000000?style=for-the-badge&logo=apple&logoColor=white)](https://support.apple.com/guide/disk-utility/welcome/mac)
@@ -16,9 +16,16 @@
 
 Muito pendrive e cartão SD vendido por aí mente sobre a própria capacidade: a controladora informa 1 TB pro macOS, mas só existem 16 GB de memória de verdade lá dentro. Ao encher o disco, os dados mais antigos vão sendo sobrescritos silenciosamente — parece que salvou tudo, mas na volta metade dos arquivos está corrompida.
 
-O **DiskSafe** é a mesma técnica usada por ferramentas como o [F3](https://github.com/AltraMayor/f3) e o H2testw: escreve dados únicos e verificáveis preenchendo o espaço livre do disco, força a queda do cache do sistema (desmontando e remontando), lê tudo de volta e compara byte a byte. Enquanto isso, o terminal mostra uma grade de blocos que vai pintando — cinza (pendente), azul (escrito), amarelo (processando), **verde** (confirmado real) ou **vermelho** (fantasma — não bate com o que foi escrito).
+O **DiskSafe** usa a mesma técnica de ferramentas como o [F3](https://github.com/AltraMayor/f3) e o H2testw para expor isso: preenche o disco com dados verificáveis, força uma leitura real (sem cache) e compara o que voltou com o que foi escrito. Um único arquivo, sem nenhuma dependência de `npm install` — só Node.js e o `diskutil` que já vem no macOS.
 
-Um único arquivo, sem nenhuma dependência de `npm install` — só Node.js e o `diskutil` que já vem no macOS.
+## ⚙️ Como funciona
+
+1. **Geração determinística** — a partir de uma semente aleatória (`seed`), cada bloco de dados é gerado com AES-256-CTR a partir do seu índice sequencial. Isso significa que o programa nunca precisa guardar o que escreveu: na hora de verificar, ele recalcula exatamente o mesmo bloco a partir do índice e compara.
+2. **Preenchimento do espaço livre** — esses blocos são gravados em arquivos sequenciais (limitados a 2 GB cada, para não esbarrar no limite de arquivo do FAT32) até ocupar todo o espaço livre do volume escolhido.
+3. **Queda forçada do cache** — depois de escrever, o programa roda `sync` e desmonta/remonta o disco físico inteiro (`diskutil unmountDisk` + `mountDisk`). Sem isso, uma leitura logo em seguida poderia vir da memória RAM do macOS em vez do disco de verdade, mascarando o problema.
+4. **Leitura e comparação** — os arquivos são lidos de volta, o gerador recalcula o valor esperado para cada posição e compara byte a byte com o que foi realmente lido.
+5. **Resultado** — todo trecho que não bate é memória "fantasma": o disco disse que tinha aquele espaço, mas não tem. O ponto onde a primeira divergência aparece indica, na prática, a capacidade real aproximada do disco.
+6. **Escolha do disco** — a listagem nunca inclui o disco onde o macOS está instalado. Em vez de confiar apenas na flag "externo" do `diskutil` (que classifica errado leitores de cartão SD internos, por exemplo), o programa resolve qual é o disco de boot e exclui só ele, aceitando qualquer outro disco removível/ejetável.
 
 ## 🚀 Requisitos
 
@@ -57,7 +64,6 @@ O programa lista os discos externos/removíveis encontrados, mostra um card com 
 
 ## 🔒 Segurança
 
-- Só aparecem na lista discos **externos ou removíveis** (pendrive, SD, HD USB). O disco onde o macOS está instalado nunca é listado, mesmo em leitores internos de cartão SD.
 - O teste **não apaga seus arquivos**: só ocupa o espaço livre temporariamente com dados de teste, removidos ao final (ou quando você mandar apagar).
 - Antes de escrever qualquer coisa, o programa mostra um card com os detalhes do disco e exige uma confirmação explícita pelo menu.
 
