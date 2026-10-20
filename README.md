@@ -1,12 +1,17 @@
 <div align="center">
 
-# 🛡️ DiskSafe
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JuniorCarlini/disksafe/main/assets/logo-dark.svg">
+  <img src="https://raw.githubusercontent.com/JuniorCarlini/disksafe/main/assets/logo-light.svg" alt="" width="70" height="114">
+</picture>
+
+<h1>DiskSafe</h1>
 
 **Verificador de disco/pendrive "fantasma" para macOS — descobre quando a capacidade real de um disco é menor do que a anunciada.**
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![macOS](https://img.shields.io/badge/macOS-diskutil-000000?style=for-the-badge&logo=apple&logoColor=white)](https://support.apple.com/guide/disk-utility/welcome/mac)
-[![Zero deps](https://img.shields.io/badge/depend%C3%AAncias-zero-brightgreen?style=for-the-badge)]()
+[![Zero deps](https://img.shields.io/badge/depend%C3%AAncias-zero-0E9F6E?style=for-the-badge)]()
 
 </div>
 
